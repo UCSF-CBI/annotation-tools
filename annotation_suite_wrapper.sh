@@ -77,17 +77,6 @@ if [[ -z "${INPUT_DATA_DIRECTORY}" || -z "${OUTPUT_DATA_DIRECTORY}" || -z "${MER
     exit 1
 fi
 
-# check for presence of SSL cert in ${ANNOTATION_SUITE_SCRIPTS_HOME}
-JAVA_SSL_ARGS=""
-SSL_CERT_PATH=${ANNOTATION_SUITE_SCRIPTS_HOME}/AwsSsl.truststore
-if ! [ -f ${SSL_CERT_PATH} ] ; then
-    echo "Could not find SSL certificate: ${SSL_CERT_PATH} - please make sure this certificate exists and is present in ${ANNOTATION_SUITE_SCRIPTS_HOME}. Exiting..."
-    exit 1
-else
-    JAVA_SSL_ARGS="-Djavax.net.ssl.trustStore=${SSL_CERT_PATH}"
-fi
-
-
 PROCESSED_SUB_DIR_NAME="${OUTPUT_DATA_DIRECTORY}/processed"
 ANNOTATED_SUB_DIR_NAME="${OUTPUT_DATA_DIRECTORY}/annotated"
 FILE_EXTENSIONS_LIST="vcf,maf,txt" # text files are treated as MAFs to handle names like data_mutations_extended.txt
@@ -128,7 +117,7 @@ function annotateMAF {
     input_file="$1"
     output_file=${ANNOTATED_SUB_DIR_NAME}/$(basename "${input_file}").annotated
     echo -e "\t[INFO] annotateMAF(), annotating MAF: ${input_file} --> ${output_file}"
-    java ${JAVA_SSL_ARGS} -jar ${GENOME_NEXUS_ANNOTATOR_JAR} --filename "${input_file}" --output-filename "${output_file}" --isoform-override ${GENOME_NEXUS_ANNOTATOR_ISOFORM} -p ${GENOME_NEXUS_ANNOTATOR_POST_SIZE} -r
+    java -jar ${GENOME_NEXUS_ANNOTATOR_JAR} --filename "${input_file}" --output-filename "${output_file}" --isoform-override ${GENOME_NEXUS_ANNOTATOR_ISOFORM} -p ${GENOME_NEXUS_ANNOTATOR_POST_SIZE} -r
     if [ $? -gt 0 ] ; then
         echo -e "\n[ERROR] annotateMAF(), error encountered while running the genome nexus annotation pipeline"
         exit 1
