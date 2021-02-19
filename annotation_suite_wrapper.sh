@@ -84,6 +84,7 @@ FILE_EXTENSIONS_LIST="vcf,maf,txt" # text files are treated as MAFs to handle na
 STANDARDIZE_MUTATION_DATA_SCRIPT=${ANNOTATION_SUITE_SCRIPTS_HOME}/standardize_mutation_data.py
 GENOME_NEXUS_ANNOTATOR_JAR=${ANNOTATION_SUITE_SCRIPTS_HOME}/annotator.jar
 MERGE_MAFS_SCRIPT=${ANNOTATION_SUITE_SCRIPTS_HOME}/merge_mafs.py
+OVERLAY_GNOMAD_COLUMNS_SCRIPT=${ANNOTATION_SUITE_SCRIPTS_HOME}/overlay_gnomad_columns.py
 
 GENOME_NEXUS_ANNOTATOR_ISOFORM="uniprot"
 GENOME_NEXUS_ANNOTATOR_POST_SIZE=1000
@@ -112,16 +113,26 @@ function standardizeMutationFilesFromDirectory {
     fi
 }
 
+function overlayGnomadColumns {
+    input_file="$1"
+    output_file=${ANNOTATED_SUB_DIR_NAME}/$(basename "${input_file}" .tmp).annotated
+    echo -e "\t[INFO] overlayGnomadColumns(), overlaying MAF: ${input_file} --> ${output_file}"
+    python3 "${OVERLAY_GNOMAD_COLUMNS_SCRIPT}" -i "${input_file}" -o "${output_file}"
+    echo -e "\t[INFO] overlayGnomadColumns(), removing intermediate MAF: ${input_file}"
+    rm "${input_file}"
+}
+
 function annotateMAF {
     # (1): input file to annotate
     input_file="$1"
-    output_file=${ANNOTATED_SUB_DIR_NAME}/$(basename "${input_file}").annotated
+    output_file=${ANNOTATED_SUB_DIR_NAME}/$(basename "${input_file}").tmp
     echo -e "\t[INFO] annotateMAF(), annotating MAF: ${input_file} --> ${output_file}"
     java -jar ${GENOME_NEXUS_ANNOTATOR_JAR} --filename "${input_file}" --output-filename "${output_file}" --isoform-override ${GENOME_NEXUS_ANNOTATOR_ISOFORM} -p ${GENOME_NEXUS_ANNOTATOR_POST_SIZE} -r
     if [ $? -gt 0 ] ; then
         echo -e "\n[ERROR] annotateMAF(), error encountered while running the genome nexus annotation pipeline"
         exit 1
     fi
+    overlayGnomadColumns "${output_file}"
 }
 
 function annotateStandardizedMAFs {
