@@ -15,4 +15,5 @@ COPY --from=build /genome-nexus-annotation-pipeline/annotationPipeline/target/an
 COPY ["merge_mafs.py", "overlay_gnomad_columns.py", "standardize_mutation_data.py", "variant_notation_converter.py", "/opt/scripts/"]
 COPY annotation_suite_wrapper.sh /opt/annotation_suite_wrapper.sh
 RUN mkdir /opt/input /opt/output
-RUN pip install -U chardet requests
+COPY requirements.txt /opt/requirements.txt
+RUN pip install -r requirements.txt
