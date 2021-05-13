@@ -803,7 +803,7 @@ def detect_file_encoding(filename):
         to detect the type of encoding.
     """
     with open(filename, "rb") as data_file:
-        encoding = detect(data_file.read(1000000))
+        encoding = detect(data_file.read(52428800))
         if encoding["encoding"] != "ascii":
             print("[WARNING] detect_file_encoding(), Non-ASCII encoding detected in file %s, encoding type detected: %s - non-ASCII characters will be ignored and removed" % (filename, encoding["encoding"]))
         return encoding["encoding"]

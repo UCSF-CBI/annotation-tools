@@ -3,6 +3,7 @@
 import argparse
 import requests
 import variant_notation_converter as vnc
+from retry import retry
 
 MVI_VARIANT_ENDPOINT = "https://myvariant.info/v1/variant"
 MVI_VARIANT_ENDPOINT_FIELDS_PARAM = "gnomad_exome.af"
@@ -74,6 +75,8 @@ def add_gnomad_values(record, header_indices, gnomad_map):
         record_with_gnomad[header_indices[gnomad_key]] = str(gnomad_map[gnomad_key])
     return record_with_gnomad
 
+
+@retry(ConnectionError, tries=3, delay=5, backoff=3, jitter=(1, 5))
 def get_query(query):
     """
         Send request to MyVariantInfo /variant GET endpoint for gnomAD fields
